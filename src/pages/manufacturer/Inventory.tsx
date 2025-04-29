@@ -1677,7 +1677,7 @@ const Inventory = () => {
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                          Edit Product
+                                          Edit Item
                                         </TooltipContent>
                                       </Tooltip>
                                     </div>
