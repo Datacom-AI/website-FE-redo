@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
+import { useTranslation } from "react-i18next"; // i18n用にインポート追加
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -98,6 +99,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Define role tabs
 const roleTabs = [
@@ -191,6 +194,9 @@ const Inventory = () => {
   const { isAuthenticated, user, role } = useUser();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const { t } = useTranslation();
 
   // States for inventory management
   const [activeTab, setActiveTab] = useState("inventory");
@@ -612,7 +618,7 @@ const Inventory = () => {
 
   // Load data on component mount
   useEffect(() => {
-    document.title = "Inventory Management - CPG Matchmaker";
+    document.title = t("inventory-title") + " - CPG Matchmaker";
 
     // If not authenticated or not a manufacturer, redirect
     if (!isAuthenticated) {
@@ -624,7 +630,7 @@ const Inventory = () => {
     // Load products and materials
     setProducts(productsData);
     setMaterials(materialsData);
-  }, [isAuthenticated, navigate, role]);
+  }, [isAuthenticated, navigate, role, t]);
 
   if (!isAuthenticated || role !== "manufacturer") {
     return null;
@@ -649,8 +655,8 @@ const Inventory = () => {
       // In a real app, this would fetch fresh data from the backend
       setRefreshing(false);
       toast({
-        title: "Inventory Refreshed",
-        description: "Inventory data has been updated.",
+        title: t("inventory-msg-stock-updated"),
+        description: t("inventory-msg-loading")
       });
     }, 1500);
   };
@@ -822,37 +828,7 @@ const Inventory = () => {
 
   // Status badge generator with improved styling for light/dark modes
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "In Stock":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-green-500/10 text-green-500 dark:bg-green-500/20 dark:text-green-400 border-green-500/20"
-          >
-            In Stock
-          </Badge>
-        );
-      case "Low Stock":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-yellow-500/10 text-yellow-500 dark:bg-yellow-500/20 dark:text-yellow-400 border-yellow-500/20"
-          >
-            Low Stock
-          </Badge>
-        );
-      case "Out of Stock":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400 border-red-500/20"
-          >
-            Out of Stock
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+    return <StatusBadge status={status as any} />;
   };
 
   // Update the updateProductStock function
@@ -965,10 +941,10 @@ const Inventory = () => {
           >
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
-                Inventory Management
+                {t("inventory-title")}
               </h1>
               <p className="text-muted-foreground">
-                Track and manage your products and raw materials
+                {t("inventory-subtitle")}
               </p>
             </div>
 
@@ -984,7 +960,7 @@ const Inventory = () => {
                     refreshing ? "animate-spin" : "group-hover:animate-spin"
                   }`}
                 />
-                {refreshing ? "Refreshing..." : "Refresh Data"}
+                {refreshing ? t("production-loading") : t("inventory-refresh")}
               </Button>
 
               <Button
@@ -999,7 +975,7 @@ const Inventory = () => {
                 }}
               >
                 <Download className="mr-2 h-4 w-4 transition-transform group-hover:translate-y-1" />
-                Generate Report
+               {t("inventory-export-data")}
               </Button>
 
               <Button
@@ -1014,7 +990,8 @@ const Inventory = () => {
               >
                 <span className="relative z-10 flex items-center">
                   <PlusCircle className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
-                  Add {inventoryView === "products" ? "Item" : "Material"}
+                  {/* {t("inventory-add-data")} {inventoryView === "products" ? "Item" : "Material"} */}
+                {t("inventory-add-data")}
                 </span>
                 <span className="absolute inset-0 bg-primary/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></span>
               </Button>
@@ -1036,7 +1013,7 @@ const Inventory = () => {
                 <CardHeader className="pb-2 bg-gradient-to-r from-primary/5 to-transparent">
                   <CardTitle className="text-sm font-medium flex items-center">
                     <Package className="h-4 w-4 mr-2 text-primary" />
-                    Total Items
+                    {t("inventory-products")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1055,7 +1032,7 @@ const Inventory = () => {
                     {products.length}
                   </motion.div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Items in inventory
+                    {t("inventory-items-below-threshold")}
                   </p>
                 </CardContent>
               </Card>
@@ -1069,7 +1046,7 @@ const Inventory = () => {
                 <CardHeader className="pb-2 bg-gradient-to-r from-yellow-500/5 to-transparent">
                   <CardTitle className="text-sm font-medium flex items-center">
                     <AlertCircle className="h-4 w-4 mr-2 text-yellow-500 dark:text-yellow-400" />
-                    Low Stock Items
+                    {t("inventory-critical-items")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1089,7 +1066,7 @@ const Inventory = () => {
                       materials.filter((m) => m.status === "Low Stock").length}
                   </motion.div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Items need attention
+                    {t("inventory-items-below-threshold")}
                   </p>
                 </CardContent>
               </Card>
@@ -1103,7 +1080,7 @@ const Inventory = () => {
                 <CardHeader className="pb-2 bg-gradient-to-r from-red-500/5 to-transparent">
                   <CardTitle className="text-sm font-medium flex items-center">
                     <AlertCircle className="h-4 w-4 mr-2 text-red-500 dark:text-red-400" />
-                    Out of Stock
+                    {t("inventory-status-out-of-stock")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1125,7 +1102,7 @@ const Inventory = () => {
                         .length}
                   </motion.div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Items to reorder
+                    {t("inventory-items-below-threshold")}
                   </p>
                 </CardContent>
               </Card>
@@ -1139,7 +1116,7 @@ const Inventory = () => {
                 <CardHeader className="pb-2 bg-gradient-to-r from-primary/5 to-transparent">
                   <CardTitle className="text-sm font-medium flex items-center">
                     <Boxes className="h-4 w-4 mr-2 text-primary" />
-                    Raw Materials
+                    {t("inventory-raw-materials")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1158,7 +1135,7 @@ const Inventory = () => {
                     {materials.length}
                   </motion.div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Materials in stock
+                    {t("inventory-material-stock")}
                   </p>
                 </CardContent>
               </Card>
@@ -1176,7 +1153,7 @@ const Inventory = () => {
               <div className="relative w-full max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search inventory..."
+                  placeholder={t("search")}
                   className="pl-10 w-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -1188,7 +1165,7 @@ const Inventory = () => {
                     className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
                     onClick={() => setSearchQuery("")}
                   >
-                    <span className="sr-only">Clear search</span>
+                    <span className="sr-only">{t("clear-all")}</span>
                     <X className="h-3 w-3" />
                   </Button>
                 )}
@@ -1199,7 +1176,7 @@ const Inventory = () => {
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="h-9">
                       <Filter className="h-4 w-4 mr-2" />
-                      Filters
+                      {t("filters")}
                       {(categoryFilter !== "all" ||
                         statusFilter !== "all" ||
                         locationFilter !== "all") && (
@@ -1217,19 +1194,19 @@ const Inventory = () => {
                   <PopoverContent align="end" className="w-[220px] p-4">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="category-filter">Category</Label>
+                        <Label htmlFor="category-filter">{t("category")}</Label>
                         <Select
                           value={categoryFilter}
                           onValueChange={setCategoryFilter}
                         >
                           <SelectTrigger id="category-filter">
-                            <SelectValue placeholder="Select category" />
+                            <SelectValue placeholder={t("category")} />
                           </SelectTrigger>
                           <SelectContent>
                             {allCategories.map((category) => (
                               <SelectItem key={category} value={category}>
                                 {category === "all"
-                                  ? "All Categories"
+                                  ? t("categories")
                                   : category}
                               </SelectItem>
                             ))}
@@ -1238,39 +1215,39 @@ const Inventory = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="status-filter">Status</Label>
+                        <Label htmlFor="status-filter">{t("status")}</Label>
                         <Select
                           value={statusFilter}
                           onValueChange={setStatusFilter}
                         >
                           <SelectTrigger id="status-filter">
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder={t("status")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="In Stock">In Stock</SelectItem>
-                            <SelectItem value="Low Stock">Low Stock</SelectItem>
+                            <SelectItem value="all">{t("status")}</SelectItem>
+                            <SelectItem value="In Stock">{t("inventory-status-in-stock")}</SelectItem>
+                            <SelectItem value="Low Stock">{t("inventory-status-low-stock")}</SelectItem>
                             <SelectItem value="Out of Stock">
-                              Out of Stock
+                              {t("inventory-status-out-of-stock")}
                             </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="location-filter">Location</Label>
+                        <Label htmlFor="location-filter">{t("inventory-product-location")}</Label>
                         <Select
                           value={locationFilter}
                           onValueChange={setLocationFilter}
                         >
                           <SelectTrigger id="location-filter">
-                            <SelectValue placeholder="Select location" />
+                            <SelectValue placeholder={t("inventory-product-location")} />
                           </SelectTrigger>
                           <SelectContent>
                             {locations.map((location) => (
                               <SelectItem key={location} value={location}>
                                 {location === "all"
-                                  ? "All Locations"
+                                  ? t("inventory-warehouse-location")
                                   : location}
                               </SelectItem>
                             ))}
@@ -1288,9 +1265,9 @@ const Inventory = () => {
                             setLocationFilter("all");
                           }}
                         >
-                          Reset
+                          {t("reset-filters")}
                         </Button>
-                        <Button size="sm">Apply</Button>
+                        <Button size="sm">{t("apply-filters")}</Button>
                       </div>
                     </div>
                   </PopoverContent>
@@ -1300,7 +1277,7 @@ const Inventory = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-9">
                       <ArrowUpDown className="h-4 w-4 mr-2" />
-                      Sort
+                      {t("sort")}
                       {sortField && (
                         <Badge
                           className="ml-2 bg-primary text-xs"
@@ -1312,7 +1289,7 @@ const Inventory = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-[180px]">
-                    <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t("sort-by")}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className={cn(sortField === "name" && "bg-muted/50")}
@@ -1325,7 +1302,7 @@ const Inventory = () => {
                         );
                       }}
                     >
-                      Name
+                      {t("inventory-product-name")}
                       {sortField === "name" &&
                         (sortDirection === "asc" ? (
                           <SortAsc className="h-4 w-4 ml-auto" />
@@ -1344,7 +1321,7 @@ const Inventory = () => {
                         );
                       }}
                     >
-                      Category
+                      {t("category")}
                       {sortField === "category" &&
                         (sortDirection === "asc" ? (
                           <SortAsc className="h-4 w-4 ml-auto" />
@@ -1354,7 +1331,7 @@ const Inventory = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className={cn(sortField === "stock" && "bg-muted/50")}
-                      onClick={() => {
+                          onClick={() => {
                         setSortField("stock");
                         setSortDirection(
                           sortField === "stock" && sortDirection === "asc"
@@ -1363,7 +1340,7 @@ const Inventory = () => {
                         );
                       }}
                     >
-                      Stock Level
+                      {t("inventory-product-stock")}
                       {sortField === "stock" &&
                         (sortDirection === "asc" ? (
                           <SortAsc className="h-4 w-4 ml-auto" />
@@ -1382,7 +1359,7 @@ const Inventory = () => {
                         );
                       }}
                     >
-                      Status
+                      {t("status")}
                       {sortField === "status" &&
                         (sortDirection === "asc" ? (
                           <SortAsc className="h-4 w-4 ml-auto" />
@@ -1397,7 +1374,7 @@ const Inventory = () => {
                         setSortDirection("asc");
                       }}
                     >
-                      Reset Sort
+                      {t("reset-filters")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -1454,7 +1431,7 @@ const Inventory = () => {
                   )}
                 >
                   <Package className="h-4 w-4" />
-                  <span>Items</span>
+                  <span>{t("inventory-tab-products")}</span>
                   <Badge className="ml-1">{products.length}</Badge>
                 </Button>
 
@@ -1469,7 +1446,7 @@ const Inventory = () => {
                   )}
                 >
                   <Boxes className="h-4 w-4" />
-                  <span>Raw Materials</span>
+                  <span>{t("inventory-tab-materials")}</span>
                   <Badge className="ml-1">{materials.length}</Badge>
                 </Button>
               </div>
@@ -1500,14 +1477,10 @@ const Inventory = () => {
                       className="border-red-500/30 bg-red-500/10 dark:bg-red-500/5"
                     >
                       <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Critical Stock Alert</AlertTitle>
+                      <AlertTitle>{t("inventory-status-out-of-stock")}</AlertTitle>
                       <AlertDescription>
-                        {
-                          products.filter((p) => p.status === "Out of Stock")
-                            .length
-                        }{" "}
-                        products are out of stock. Consider ordering new
-                        inventory to prevent sales issues.
+                        {products.filter((p) => p.status === "Out of Stock").length}{" "}
+                        {t("inventory-msg-no-products")}
                       </AlertDescription>
                     </Alert>
                   </motion.div>
@@ -1519,18 +1492,18 @@ const Inventory = () => {
                     <div className="space-y-4 text-center">
                       <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                       <p className="text-muted-foreground">
-                        Loading inventory data...
+                        {t("inventory-msg-loading")}
                       </p>
                     </div>
                   </div>
                 ) : filteredProducts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 space-y-4">
                     <Package className="h-12 w-12 text-muted-foreground/50" />
-                    <h3 className="text-lg font-medium">No products found</h3>
+                    <h3 className="text-lg font-medium">{t("inventory-msg-no-products")}</h3>
                     <p className="text-muted-foreground text-center max-w-sm">
                       {searchQuery
-                        ? `No products match your search for "${searchQuery}".`
-                        : "There are no products that match your current filters."}
+                        ? `${t("no-results")} "${searchQuery}".`
+                        : t("inventory-msg-no-products")}
                     </p>
                     {(categoryFilter !== "all" ||
                       statusFilter !== "all" ||
@@ -1543,7 +1516,7 @@ const Inventory = () => {
                           setLocationFilter("all");
                         }}
                       >
-                        Clear Filters
+                        {t("clear-filters")}
                       </Button>
                     )}
                   </div>
@@ -1554,13 +1527,15 @@ const Inventory = () => {
                         <Table>
                           <TableHeader className="bg-muted/50">
                             <TableRow>
-                              <TableHead className="w-[300px]">Item</TableHead>
-                              <TableHead>Category</TableHead>
-                              <TableHead>Available In Stock</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Storage Location</TableHead>
+                              <TableHead className="w-[300px]">
+                                {t("inventory-product-name")}
+                              </TableHead>
+                              <TableHead>{t("category")}</TableHead>
+                              <TableHead>{t("inventory-product-stock")}</TableHead>
+                              <TableHead>{t("status")}</TableHead>
+                              <TableHead>{t("inventory-product-location")}</TableHead>
                               <TableHead className="text-right">
-                                Actions
+                                {t("inventory-product-actions")}
                               </TableHead>
                             </TableRow>
                           </TableHeader>
@@ -1592,7 +1567,7 @@ const Inventory = () => {
                                           {product.name}
                                         </div>
                                         <div className="text-xs text-muted-foreground">
-                                          SKU: {product.id.slice(0, 8)}
+                                          {t("inventory-product-sku")}: {product.id.slice(0, 8)}
                                         </div>
                                       </div>
                                     </div>
@@ -1607,7 +1582,7 @@ const Inventory = () => {
                                   </TableCell>
                                   <TableCell>
                                     <div className="flex flex-col">
-                                      <span>{product.stock} units</span>
+                                      <span>{product.stock} {t("units")}</span>
                                       <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
                                         <div
                                           className={cn(
@@ -1657,7 +1632,7 @@ const Inventory = () => {
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                          Update Stock
+                                          {t("inventory-form-update-stock")}
                                         </TooltipContent>
                                       </Tooltip>
 
@@ -1677,7 +1652,7 @@ const Inventory = () => {
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                          Edit Item
+                                          {t("inventory-form-edit-product")}
                                         </TooltipContent>
                                       </Tooltip>
                                     </div>
@@ -1897,14 +1872,18 @@ const Inventory = () => {
                   <div className="rounded-md border overflow-hidden">
                     <Table>
                       <TableHeader className="bg-muted/50">
-                        <TableRow>
-                          <TableHead className="w-[300px]">Material</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Stock</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Location</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
+                         <TableRow>
+                              <TableHead className="w-[300px]">
+                                {t("inventory-product-name")}
+                              </TableHead>
+                              <TableHead>{t("category")}</TableHead>
+                              <TableHead>{t("inventory-product-stock")}</TableHead>
+                              <TableHead>{t("status")}</TableHead>
+                              <TableHead>{t("inventory-product-location")}</TableHead>
+                              <TableHead className="text-right">
+                                {t("inventory-product-actions")}
+                              </TableHead>
+                            </TableRow>
                       </TableHeader>
                       <TableBody>
                         <AnimatePresence>
@@ -2045,10 +2024,10 @@ const Inventory = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5 text-primary" />
-                  <span>Product Details</span>
+                  <span>{t("inventory-product-details")}</span>
                 </DialogTitle>
                 <DialogDescription>
-                  View detailed information about this product.
+                  {t("inventory-product-details-description")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -2074,7 +2053,7 @@ const Inventory = () => {
                           {getStatusBadge(selectedProduct.status)}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          SKU: {selectedProduct.id.slice(0, 8)} |
+                          {t("inventory-product-sku")}: {selectedProduct.id.slice(0, 8)} |
                           <span className="ml-2">
                             <MapPin className="h-3 w-3 inline mr-1" />
                             {selectedProduct.location}
@@ -2089,39 +2068,39 @@ const Inventory = () => {
                       <Card>
                         <CardHeader className="py-3">
                           <CardTitle className="text-sm font-medium">
-                            Stock Information
+                            {t("inventory-product-stock")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="py-3">
                           <div className="space-y-3">
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Current Stock:
+                                {t("inventory-product-stock")}:
                               </span>
                               <span className="font-medium">
-                                {selectedProduct.stock} units
+                                {selectedProduct.stock} {t("units")}
                               </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Maximum Stock:
+                                {t("inventory-msg-no-materials")}:
                               </span>
                               <span className="font-medium">
-                                {selectedProduct.maxStock} units
+                                {selectedProduct.maxStock} {t("units")}
                               </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Reorder Point:
+                                {t("inventory-product-reorder-point")}:
                               </span>
                               <span className="font-medium">
                                 {Math.floor(selectedProduct.maxStock * 0.2)}{" "}
-                                units
+                                {t("units")}
                               </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Status:
+                                {t("status")}:
                               </span>
                               <span>
                                 {getStatusBadge(selectedProduct.status)}
@@ -2131,7 +2110,7 @@ const Inventory = () => {
                             <div className="pt-2">
                               <div className="flex justify-between items-center text-sm mb-1">
                                 <span className="text-muted-foreground">
-                                  Stock Level:
+                                  {t("inventory-product-stock")}:
                                 </span>
                                 <span className="font-medium">
                                   {Math.round(
@@ -2170,14 +2149,14 @@ const Inventory = () => {
                       <Card>
                         <CardHeader className="py-3">
                           <CardTitle className="text-sm font-medium">
-                            Product Information
+                            {t("inventory-product-details")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="py-3">
                           <div className="space-y-3">
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Price:
+                                {t("inventory-product-price")}:
                               </span>
                               <span className="font-medium">
                                 ${selectedProduct.price.toFixed(2)}
@@ -2185,21 +2164,21 @@ const Inventory = () => {
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Weight:
+                                {t("production-units-measurement")}:
                               </span>
                               <span className="font-medium">1.2 kg</span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Dimensions:
+                                {t("production-specifications")}:
                               </span>
                               <span className="font-medium">
-                                30 × 20 × 10 cm
+                                30 × 20 × 
                               </span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                Added On:
+                                {t("production-added-on")}:
                               </span>
                               <span className="font-medium">
                                 {new Date().toLocaleDateString()}
@@ -2213,11 +2192,11 @@ const Inventory = () => {
                     <Card>
                       <CardHeader className="py-3 flex flex-row items-center justify-between">
                         <CardTitle className="text-sm font-medium">
-                          Stock History
+                          {t("inventory-product-stock-history")}
                         </CardTitle>
                         <Button variant="ghost" size="sm" className="h-8 gap-1">
                           <History className="h-3.5 w-3.5" />
-                          <span className="text-xs">View All</span>
+                          <span className="text-xs">{t("view-all")}</span>
                         </Button>
                       </CardHeader>
                       <CardContent className="py-0">
@@ -2250,8 +2229,8 @@ const Inventory = () => {
                                           <div>
                                             <p className="text-sm font-medium">
                                               {item.type === "addition"
-                                                ? "Stock Added"
-                                                : "Stock Removed"}
+                                                ? t("inventory-history-added")
+                                                : t("inventory-history-removed")}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                               {item.note}
@@ -2269,7 +2248,7 @@ const Inventory = () => {
                                               {item.type === "addition"
                                                 ? "+"
                                                 : "-"}
-                                              {item.quantity} units
+                                              {item.quantity} {t("units")}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                               {new Date(
@@ -2298,7 +2277,7 @@ const Inventory = () => {
                       }}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Update Stock
+                      {t("inventory-form-update-stock")}
                     </Button>
                     <Button
                       variant="outline"
@@ -2308,7 +2287,7 @@ const Inventory = () => {
                       }}
                     >
                       <Edit className="mr-2 h-4 w-4" />
-                      Edit Product
+                      {t("inventory-form-edit-product")}
                     </Button>
                     <Button
                       variant="destructive"
@@ -2332,10 +2311,10 @@ const Inventory = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Plus className="h-5 w-5 text-primary" />
-                  <span>Update Stock</span>
+                  <span>{t("inventory-form-update-stock")}</span>
                 </DialogTitle>
                 <DialogDescription>
-                  Add or remove stock for {selectedProduct?.name}.
+                  {t("inventory-form-update-stock")} {selectedProduct?.name}.
                 </DialogDescription>
               </DialogHeader>
 
@@ -2368,13 +2347,13 @@ const Inventory = () => {
                       <div>
                         <h4 className="font-medium">{selectedProduct.name}</h4>
                         <p className="text-sm text-muted-foreground">
-                          Current stock: {selectedProduct.stock} units
+                          {t("inventory-product-stock")}: {selectedProduct.stock} {t("units")}
                         </p>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="action">Action</Label>
+                      <Label htmlFor="action">{t("production-action")}</Label>
                       <RadioGroup
                         defaultValue="addition"
                         name="action"
@@ -2387,7 +2366,7 @@ const Inventory = () => {
                             className="flex items-center gap-1"
                           >
                             <Plus className="h-3 w-3 text-green-500" />
-                            Add Stock
+                            {t("inventory-action-add-stock")}
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -2397,14 +2376,14 @@ const Inventory = () => {
                             className="flex items-center gap-1"
                           >
                             <Minus className="h-3 w-3 text-red-500" />
-                            Remove Stock
+                            {t("inventory-action-remove-stock")}
                           </Label>
                         </div>
                       </RadioGroup>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="quantity">Quantity</Label>
+                      <Label htmlFor="quantity">{t("inventory-history-quantity")}</Label>
                       <Input
                         id="quantity"
                         name="quantity"
@@ -2416,11 +2395,11 @@ const Inventory = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="note">Note (optional)</Label>
+                      <Label htmlFor="note">{t("inventory-history-note")}</Label>
                       <Textarea
                         id="note"
                         name="note"
-                        placeholder="Enter reason for stock update..."
+                        placeholder={t("inventory-history-note")}
                         rows={3}
                       />
                     </div>
@@ -2428,7 +2407,7 @@ const Inventory = () => {
 
                   <DialogFooter>
                     <Button type="submit" className="w-full sm:w-auto">
-                      Update Stock
+                      {t("inventory-form-update-stock")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -2442,10 +2421,10 @@ const Inventory = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <PlusCircle className="h-5 w-5 text-primary" />
-                  <span>Add New Item</span>
+                  <span>{t("inventory-add-data")}</span>
                 </DialogTitle>
                 <DialogDescription>
-                  Add a new item to your inventory.
+                  {t("inventory-form-add-product")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -2462,7 +2441,8 @@ const Inventory = () => {
                     maxStock: parseInt(formData.get("maxStock") as string, 10),
                     status: "In Stock",
                     location: formData.get("location") as string,
-                    price: parseFloat(formData.get("price") as string),
+                    // price: parseFloat(formData.get("price") as string),
+                    sku: formData.get("sku") as string,
                     reorderPoint: Math.floor(
                       parseInt(formData.get("maxStock") as string, 10) * 0.2
                     ),
@@ -2488,8 +2468,8 @@ const Inventory = () => {
                   setProducts((prev) => [...prev, newProduct]);
 
                   toast({
-                    title: "Product Added",
-                    description: `${newProduct.name} has been added to inventory.`,
+                    title: t("inventory-msg-product-added"),
+                    description: `${newProduct.name} ${t("inventory-msg-product-added")}`,
                   });
 
                   setIsAddProductOpen(false);
@@ -2498,11 +2478,11 @@ const Inventory = () => {
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Item Name</Label>
+                      <Label htmlFor="name">Item name</Label>
                       <Input
                         id="name"
                         name="name"
-                        placeholder="Enter item name"
+                        placeholder="Enter product name"
                         required
                       />
                     </div>
@@ -2577,9 +2557,22 @@ const Inventory = () => {
                       </Select>
                     </div>
 
+                    {/* <div className="space-y-2">
+                      <Label htmlFor="price">Price ($)</Label>
+                      <Input
+                        id="price"
+                        name="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        defaultValue="0.00"
+                        required
+                      />
+                    </div> */}
+
                     <div className="space-y-2">
-                      <Label htmlFor="price">SKU</Label>
-                      <Input id="sku" name="sku" type="text" required />
+                      <Label htmlFor="sku">SKU</Label>
+                      <Input id="sku" name="sku" type="relative" />
                     </div>
                   </div>
 
@@ -2588,7 +2581,7 @@ const Inventory = () => {
                     <Textarea
                       id="description"
                       name="description"
-                      placeholder="Enter item description..."
+                      placeholder="Enter product description..."
                       rows={3}
                     />
                   </div>
@@ -2597,7 +2590,7 @@ const Inventory = () => {
                 <DialogFooter>
                   <Button type="submit" className="w-full sm:w-auto">
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Item
+                    {t("inventory-add-data")}
                   </Button>
                 </DialogFooter>
               </form>
@@ -2955,7 +2948,7 @@ const Inventory = () => {
                     <Card>
                       <CardHeader className="py-3 flex flex-row items-center justify-between">
                         <CardTitle className="text-sm font-medium">
-                          Usage in Items
+                          Usage in Products
                         </CardTitle>
                         <Button variant="ghost" size="sm" className="h-8 gap-1">
                           <ListFilter className="h-3.5 w-3.5" />
@@ -3322,16 +3315,8 @@ const Inventory = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="price">Price Per Unit ($)</Label>
-                      <Input
-                        id="price"
-                        name="price"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        defaultValue="0.00"
-                        required
-                      />
+                      <Label htmlFor="price">SKU</Label>
+                      <Input id="sku" name="sku" type="text" required />
                     </div>
                   </div>
                 </div>
@@ -3385,7 +3370,7 @@ const Inventory = () => {
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Warning</AlertTitle>
                     <AlertDescription>
-                      This material may be used in active items. Deleting it
+                      This material may be used in active products. Deleting it
                       could impact production.
                     </AlertDescription>
                   </Alert>
