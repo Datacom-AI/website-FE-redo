@@ -389,7 +389,7 @@ const SignInForm = () => {
             )}
           />
 
-          {/* Account Type Selection - Development Testing Only */}
+          {/* Account Type Selection - Development Testing Only
           <div className="border border-dashed border-yellow-300 bg-yellow-50/30 dark:bg-yellow-900/10 p-3 rounded-md relative">
             <div className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-2 flex items-center gap-2">
               <span>⚙️</span> Development Mode: Select Account Type
@@ -453,7 +453,7 @@ const SignInForm = () => {
                 </FormItem>
               )}
             />
-          </div>
+          </div> */}
 
           <div className="text-right">
             <Button
