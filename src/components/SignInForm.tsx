@@ -262,7 +262,7 @@ const SignInForm = () => {
       </motion.div>
 
       {/* Social Login Options */}
-      <motion.div
+      {/* <motion.div
         className="mb-6 space-y-3 relative z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -333,7 +333,7 @@ const SignInForm = () => {
             {t("continue-with-outlook", "Continue with Outlook")}
           </span>
         </Button>
-      </motion.div>
+      </motion.div> */}
 
       <div className="flex items-center gap-2 my-6 relative z-10">
         <Separator className="flex-1 bg-border/50 dark:bg-border/30" />

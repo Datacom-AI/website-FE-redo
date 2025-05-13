@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { authApi } from "../lib/api";
 
 export type UserRole = "manufacturer" | "brand" | "retailer";
 
@@ -86,141 +87,64 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string, selectedRole?: UserRole): Promise<void> => {
-    // In a real app, this would make an API call to authenticate
-    // For now, we'll simulate a successful login
-    
-    // Use the provided role or default to manufacturer
-    const roleToUse = selectedRole || "manufacturer";
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Create mock role-specific settings based on the role
-    let roleSpecificSettings = {};
-    
-    if (roleToUse === "manufacturer") {
-      roleSpecificSettings = {
-        manufacturerSettings: {
-          productionCapacity: 50000,
-          certifications: ["ISO 9001", "Organic", "Fair Trade"],
-          preferredCategories: ["Food", "Beverage", "Personal Care"],
-          minimumOrderValue: 10000
-        }
+    try {
+      // Sử dụng authApi.login thay vì dữ liệu mẫu
+      const response = await authApi.login({ email, password });
+      
+      // Lưu token nhận được từ backend
+      localStorage.setItem("auth_token", response.data.accessToken);
+      localStorage.setItem("refresh_token", response.data.refreshToken);
+      
+      // Nếu backend không trả về role, sử dụng selectedRole mặc định
+      const userData = {
+        ...response.data.user,
+        role: response.data.user.role || selectedRole || "manufacturer"
       };
-    } else if (roleToUse === "brand") {
-      roleSpecificSettings = {
-        brandSettings: {
-          marketSegments: ["Health-conscious", "Eco-friendly", "Premium"],
-          brandValues: ["Sustainability", "Quality", "Innovation"],
-          targetDemographics: ["Millennials", "Gen Z", "Health enthusiasts"],
-          productCategories: ["Organic Foods", "Wellness", "Eco-friendly products"]
-        }
-      };
-    } else if (roleToUse === "retailer") {
-      roleSpecificSettings = {
-        retailerSettings: {
-          storeLocations: 12,
-          averageOrderValue: 75,
-          customerBase: ["Urban professionals", "Health-conscious families", "Millennials"],
-          preferredCategories: ["Organic", "Local", "Sustainable", "Health food"]
-        }
-      };
+      
+      // Lưu thông tin user vào localStorage
+      localStorage.setItem("user", JSON.stringify(userData));
+      
+      // Cập nhật state
+      setUser(userData);
+      setRole(userData.role);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error("Login error:", error);
+      // Xử lý lỗi đăng nhập
+      throw new Error(error.response?.data?.message || "Login failed");
     }
-    
-    // Create mock user data
-    const userData: UserData = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: "Demo User", // In a real app, this would come from the API
-      email,
-      companyName: "Demo Company", // In a real app, this would come from the API
-      role: roleToUse,
-      profileComplete: false,
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      notifications: Math.floor(Math.random() * 10),
-      avatar: "", // In a real app, this would come from the API
-      status: "online", // In a real app, this would come from the API
-      ...roleSpecificSettings
-    };
-    
-    // Save to localStorage for persistence
-    localStorage.setItem("user", JSON.stringify(userData));
-    
-    // Update state
-    setUser(userData);
-    setRole(roleToUse);
-    setIsAuthenticated(true);
   };
 
   const register = async (userData: Omit<UserData, "id" | "profileComplete" | "createdAt" | "lastLogin" | "notifications"> & { password: string }): Promise<void> => {
-    // In a real app, this would make an API call to register the user
-    // For now, we'll simulate a successful registration
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Create role-specific settings based on the role
-    let roleSpecificSettings = {};
-    
-    if (userData.role === "manufacturer") {
-      roleSpecificSettings = {
-        manufacturerSettings: {
-          productionCapacity: 0,
-          certifications: [],
-          preferredCategories: [],
-          minimumOrderValue: 0
-        }
-      };
-    } else if (userData.role === "brand") {
-      roleSpecificSettings = {
-        brandSettings: {
-          marketSegments: [],
-          brandValues: [],
-          targetDemographics: [],
-          productCategories: []
-        }
-      };
-    } else if (userData.role === "retailer") {
-      roleSpecificSettings = {
-        retailerSettings: {
-          storeLocations: 0,
-          averageOrderValue: 0,
-          customerBase: [],
-          preferredCategories: []
-        }
-      };
+    try {
+      // Sử dụng authApi.register thay vì dữ liệu mẫu
+      const response = await authApi.register({
+        email: userData.email,
+        password: userData.password,
+        name: userData.name,
+        companyName: userData.companyName,
+        role: userData.role
+      });
+      
+      // Nếu đăng ký thành công và backend trả về thông tin user
+      // -> Đăng nhập tự động sau khi đăng ký
+      if (response.data) {
+        // Không đăng nhập tự động vì có thể yêu cầu xác nhận email trước
+        // Điều hướng đến trang xác nhận email hoặc đăng nhập
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw new Error(error.response?.data?.message || "Registration failed");
     }
-    
-    // Create user with random ID and default values
-    const newUser: UserData = {
-      ...userData,
-      id: Math.random().toString(36).substr(2, 9),
-      profileComplete: false,
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      notifications: 0,
-      avatar: "", // In a real app, this would come from the API
-      status: "online", // In a real app, this would come from the API
-      ...roleSpecificSettings
-    };
-    
-    // Omit password before storing in state
-    const { password, ...userWithoutPassword } = userData;
-    
-    // Save to localStorage for persistence
-    localStorage.setItem("user", JSON.stringify(newUser));
-    
-    // Update state
-    setUser(newUser);
-    setRole(newUser.role);
-    setIsAuthenticated(true);
   };
 
   const logout = (): void => {
-    // Clear local storage
+    // Xóa token và thông tin user khỏi localStorage
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
     
-    // Reset state
+    // Cập nhật state
     setUser(null);
     setIsAuthenticated(false);
   };
@@ -338,74 +262,47 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const verifyEmail = async (email: string, verificationCode: string): Promise<void> => {
-    // In a real app, this would make an API call to verify the email
-    // For now, we'll simulate successful verification
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Verify hard-coded verification code for demo purposes
-    if (verificationCode !== "123456") {
-      throw new Error("Invalid verification code");
-    }
-    
-    // If we got here, verification was successful
-    // In a real app, we would update the user's email verification status in the backend
-    
-    if (user) {
-      // Update user to mark email as verified
-      const updatedUser = {
-        ...user,
-        emailVerified: true,
-      };
+    try {
+      // Sử dụng authApi.verifyEmail thay vì dữ liệu mẫu
+      await authApi.verifyEmail({
+        email,
+        token: verificationCode
+      });
       
-      // Save to localStorage
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      
-      // Update state
-      setUser(updatedUser);
+      // Nếu xác minh email thành công, có thể tiến hành đăng nhập
+      // hoặc chuyển đến trang xác nhận thành công
+    } catch (error) {
+      console.error("Email verification error:", error);
+      throw new Error(error.response?.data?.message || "Email verification failed");
     }
   };
 
   const resendVerificationEmail = async (email: string): Promise<void> => {
-    // In a real app, this would make an API call to resend the verification email
-    // For now, we'll simulate a successful resend
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // In a real app, we would trigger an email sending from the backend
-    console.log(`Verification email resent to ${email}`);
-    
-    // Nothing to update in the state for this operation
+    try {
+      // Sử dụng authApi.resendVerification thay vì dữ liệu mẫu
+      await authApi.resendVerification(email);
+      
+      // Nếu gửi lại email xác minh thành công
+    } catch (error) {
+      console.error("Resend verification email error:", error);
+      throw new Error(error.response?.data?.message || "Failed to resend verification email");
+    }
   };
 
   const updateProfile = async (profileData: any): Promise<void> => {
-    // In a real app, this would make an API call to update the user's profile
-    // For now, we'll simulate a successful profile update
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (user) {
-      // Update user with the new profile data
-      const updatedUser = {
-        ...user,
-        ...profileData,
-        profileComplete: true,
-        lastUpdated: new Date().toISOString(),
-      };
+    try {
+      // Sử dụng authApi.updateProfile thay vì cập nhật trực tiếp
+      const response = await authApi.updateProfile(profileData);
       
-      // Save to localStorage
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      
-      // Update state
-      setUser(updatedUser);
-      
-      // If role was updated, update the role state as well
-      if (profileData.role && profileData.role !== user.role) {
-        setRole(profileData.role);
+      if (user) {
+        // Cập nhật user trong state và localStorage
+        const updatedUser = { ...user, ...response.data };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
       }
+    } catch (error) {
+      console.error("Profile update error:", error);
+      throw new Error(error.response?.data?.message || "Failed to update profile");
     }
   };
 
