@@ -89,6 +89,14 @@ const ProductCatalog: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  
+  // Đưa availableFilters lên trước khi nó được sử dụng
+  const [availableFilters, setAvailableFilters] = useState({
+    brands: [] as string[],
+    categories: [] as string[],
+    priceRange: { min: 0, max: 1000 }
+  });
+  
   const [filters, setFilters] = useState<FilterState>(() => {
     const savedFilters = localStorage.getItem('catalog-filters');
     if (savedFilters) {
@@ -115,11 +123,7 @@ const ProductCatalog: React.FC = () => {
       sortOrder: 'desc'
     };
   });
-  const [availableFilters, setAvailableFilters] = useState({
-    brands: [] as string[],
-    categories: [] as string[],
-    priceRange: { min: 0, max: 1000 }
-  });
+  
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 768);
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);

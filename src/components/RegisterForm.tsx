@@ -66,8 +66,8 @@ const RegisterForm = () => {
     setIsLoading(true);
     
     try {
-      // Send verification email and proceed to verification step
-      await register({
+      // Đảm bảo dữ liệu gửi đi phù hợp với AuthRegisterDTO của backend
+      const userData = await register({
         name: data.name,
         email: data.email,
         password: data.password,
@@ -75,7 +75,7 @@ const RegisterForm = () => {
         role: data.role,
         companyName: 'pending',
       });
-      
+      console.log(userData)
       toast({
         title: t('verification-email-sent', 'Verification email sent'),
         description: t('verification-email-description', 'Please check your email to verify your account.'),
@@ -96,53 +96,53 @@ const RegisterForm = () => {
   };
 
   // Social registration handlers
-  const handleGoogleRegister = async () => {
-    try {
-      // Implement Google OAuth
-      toast({
-        title: "Google Registration",
-        description: "Google authentication will be implemented here.",
-      });
-    } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "Could not register with Google.",
-        variant: "destructive",
-      });
-    }
-  };
+  // const handleGoogleRegister = async () => {
+  //   try {
+  //     // Implement Google OAuth
+  //     toast({
+  //       title: "Google Registration",
+  //       description: "Google authentication will be implemented here.",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Registration failed",
+  //       description: "Could not register with Google.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
-  const handleLineRegister = async () => {
-    try {
-      // Implement Line OAuth
-      toast({
-        title: "Line Registration",
-        description: "Line authentication will be implemented here.",
-      });
-    } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "Could not register with Line.",
-        variant: "destructive",
-      });
-    }
-  };
+  // const handleLineRegister = async () => {
+  //   try {
+  //     // Implement Line OAuth
+  //     toast({
+  //       title: "Line Registration",
+  //       description: "Line authentication will be implemented here.",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Registration failed",
+  //       description: "Could not register with Line.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
-  const handleOutlookRegister = async () => {
-    try {
-      // Implement Outlook OAuth
-      toast({
-        title: "Outlook Registration",
-        description: "Outlook authentication will be implemented here.",
-      });
-    } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "Could not register with Outlook.",
-        variant: "destructive",
-      });
-    }
-  };
+  // const handleOutlookRegister = async () => {
+  //   try {
+  //     // Implement Outlook OAuth
+  //     toast({
+  //       title: "Outlook Registration",
+  //       description: "Outlook authentication will be implemented here.",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Registration failed",
+  //       description: "Could not register with Outlook.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
   return (
     <div className="bg-background/80 dark:bg-background/60 backdrop-blur-md shadow-lg dark:shadow-primary/5 border border-border/40 dark:border-border/20 p-8 rounded-xl w-full max-w-md relative overflow-hidden">
@@ -266,7 +266,7 @@ const RegisterForm = () => {
       </motion.div>
 
       {/* Social Login Options */}
-      <motion.div 
+      {/* <motion.div 
         className="mb-6 space-y-3 relative z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -337,7 +337,7 @@ const RegisterForm = () => {
             {t('continue-with-outlook', 'Continue with Outlook')}
           </span>
         </Button>
-      </motion.div>
+      </motion.div> */}
 
       <div className="flex items-center gap-2 my-6 relative z-10">
         <Separator className="flex-1 bg-border/50 dark:bg-border/30" />
